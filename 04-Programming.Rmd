@@ -1,7 +1,39 @@
 # In-Class Programming Activity, Day 4
 
-Your work goes here ...
+# Ilse Dippenaar
 
+# Task 1
+```{r}
+plot(1, xlim = c(0, 100), ylim = c(0,100), type="n")
+```
+
+# Task 2
+```{r}
+plot(1, xlim = c(0, 100), ylim = c(0, 100), type ="n")
+x1 <- 100
+y1 <- 100
+x2 <- c(0, x1, x1, 0, 0)
+y2 <- c(0, 0, y1, y1, 0)
+lines(x2, y2)
+```
+
+# Task 3
+```{r}
+tt <- seq(0, 2*pi, length.out = 1000)
+x3 <- 50 + 20*cos(tt)
+y3 <- 60 + 20*sin(tt)
+plot(0, xlim = c(0, 100), ylim = c(0, 100), type = "n", asp = 1)
+polygon(x3, y3)
+```
+
+# Task 4
+```{r}
+tt <- seq(0, 2*pi, length.out = 1000)
+x4 <- 50 + 20*abs(sin(tt))*cos(tt)
+y4 <- 60 + 20*abs(sin(tt))*sin(tt)
+plot(0, xlim = c(0, 100), ylim = c(0, 100), type = "n", asp = 1)
+polygon(x4, y4, col = "seagreen4")
+```
 
 
 ## Test statements
