@@ -39,9 +39,9 @@ myHistogram <- function(X, nbins, fill="seagreen4", ...) {
   plot(My_bars, type="n", ...)
   polygon(My_bars, col = fill)
   
-  sorted.X <- sort(X)
+  sortedX <- sort(X)
   scale <- hist_basics[["count"]] %*% diff(evenly_spaced)
-  lines(sorted.X, dnorm(sortedX, mean(X), sd(X))*scale, col = "red", lwd=1.5)
+  lines(sortedX, dnorm(sortedX, mean(X), sd(X))*scale, col = "red", lwd=1.5)
 }
 with(Galton, myHistogram(height, 10))
 ```
