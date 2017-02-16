@@ -1,7 +1,41 @@
 # In-Class Programming Activity, Day 7
 
-Your work goes here ...
+## Ilse Dippenaar
 
+### 1
+```{r}
+(vals <- rexp(10, 1/100))
+```
+
+### 2
+```{r}
+(test200 <- sum(dexp(vals, 1/100, log = T)))
+```
+
+### 3
+```{r}
+LL_exp <- function(rate) sum(dexp(vals, rate, T))
+```
+
+### 4
+```{r}
+rates <- seq(1/50, 1/200, length.out = 100)
+```
+
+### 5
+```{r}
+(results <- vapply(rates, LL_exp, numeric(1)))
+```
+
+### 6
+```{r}
+plot(1/rates, results, type="l")
+```
+
+### 7
+```{r}
+(exp_results <- optimize(LL_exp, lower = 1/200, upper = 1/50, maximum = T))
+```
 
 
 ## Test statements
