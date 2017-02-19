@@ -1,2 +1,161 @@
 # Topic 2 Exercises: Linear Regression
 
+# Ilse Dippenaar
+
+### 3.6
+```{r}
+library(MASS)
+library(ISLR)
+```
+```{r}
+mod <- lm(medv~lstat, data=Boston)
+summary(mod)
+confint(mod)
+predict(mod, data.frame(lstat=c(5, 10, 15)), interval = "confidence")
+predict(mod, data.frame(lstat=c(5, 10, 15)), interval = "prediction")
+with(Boston, plot(lstat, medv, pch=20))
+abline(mod, col="red", lwd=2)
+par(mfrow=c(2,2))
+plot(mod, pch=20)
+```
+```{r}
+plot(predict(mod), residuals(mod), pch=20)
+plot(predict(mod), rstudent(mod), pch=20)
+plot(hatvalues(mod), pch=20)
+which.max(hatvalues(mod))
+```
+```{r}
+mod <- lm(medv ~ lstat+age, data=Boston)
+summary(mod)
+mod <- lm(medv ~ ., data=Boston)
+summary(mod)
+library(car)
+vif(mod)
+mod <- lm(medv ~ . - age, data=Boston)
+summary(mod)
+```
+```{r}
+mod2 <- lm(medv ~ lstat + I(lstat^2), data = Boston)
+summary(mod)
+mod <- lm(medv ~ lstat, data = Boston)
+anova(mod, mod2)
+par(mfrow=c(2,2))
+plot(mod2, pch=20)
+summary(lm(medv ~ poly(lstat, 5), data = Boston))
+```
+```{r}
+mod <- lm(Sales ~ . + Income:Advertising + Price:Age, data=Carseats)
+summary(mod)
+contrasts(Carseats$ShelveLoc)
+```
+
+
+### 13
+```{r}
+set.seed(1)
+x <- rnorm(100)
+eps <- rnorm(100, sd = sqrt(0.25))
+y <- 0.5*x-1+eps
+```
+
+The vector `y` has length 100 and $\beta_0=-1$ and $\beta_1=0.5$. 
+
+```{r}
+plot(x, y, pch=20, col="purple")
+```
+
+The plot shows a postive correlation between $x$ and $y$, but there is significant noise in the linear releationship.
+
+```{r}
+mod <- lm(y ~ x)
+summary(mod)$coefficients
+```
+
+The coefficients of the model are very similar to $\beta_0$ and $\beta_1$.
+
+```{r}
+plot(x, y, pch=20)
+abline(mod, col="red", lwd=2)
+legend("topleft", legend = "Regression Line", lty = 1, col = "red", lwd = 2)
+```
+```{r}
+mod2 <- lm(y ~ x + I(x^2))
+anova(mod, mod2)
+```
+
+There is not strong evidence that the quadratic model fits the data better than the linear model since the p-value for the hypothesis test does not indicate signifcant deviance from the null hypothesis.
+
+```{r}
+x <- rnorm(100)
+eps <- rnorm(100, sd = sqrt(0.1))
+y <- 0.5*x-1+eps
+mod3 <- lm(y~x)
+plot(x, y, pch=20)
+abline(mod3, col="red", lwd=2)
+legend("topleft", legend = "Regression Line", lty = 1, col = "red", lwd = 2)
+summary(mod3)
+```
+
+The model is able to approximate the data better due to less irreducible error in the data.
+
+```{r}
+x <- rnorm(100)
+eps <- rnorm(100, sd = sqrt(0.5))
+y <- 0.5*x-1+eps
+mod4 <- lm(y~x)
+plot(x, y, pch=20)
+abline(mod4, col="red", lwd=2)
+legend("topleft", legend = "Regression Line", lty = 1, col = "red", lwd = 2)
+summary(mod4)
+```
+
+The linear model is not as significant since there is more irreducible error in the data.
+
+```{r}
+confint(mod)
+confint(mod3)
+confint(mod4)
+```
+
+The models fitted to noisier data sets have larger confidence intervals than those with less noise.
+
+### Reading question 1
+
+The plot clearly shows larger errors as the value of `TV` increases, showing that for $e_i$ and increasing $i$, the variance $\sigma^2$ becomes larger. Thus, $\text{Var}(e)$ and $e_i$ are not uncorrelated. 
+
+### Reading question 2
+
+WHen $p>n$, the model is overcomplete, i.e. there are multiple regression planes which fit the data equally well using the MSE metric.
+
+### 3
+
+#### a)
+
+Answer iii is correct since the coefficient for the gender term $\hat{\beta}_3$ is 35, but the coefficient for the interaction term $\hat{\beta}_5$ is -10, indicating that for high GPA (the interaction effect is high), females make less on average than males do.
+
+#### b)
+
+```{r}
+50+20*4+0.07*110+35*1+0.01*4.0*110-10*4.0*1
+```
+
+#### c)
+False, since the coefficient has units, which in this are are IQ units. The values the variable takes might be very large, and so the coefficient is scaled to take the unit into account.
+
+### 4
+
+#### a)
+
+I would expect the RSS value to be approximately equal on both models since both models would attempt to approximate the same class of functions, in this case, a line. However, since the cubic model necessarily has access to a larger class of functions, it cannot get a larger RSS than the linear model.
+
+#### b)
+
+The linear model would perform better in a test since the cubic model would overfit the training data, leading to larger errors in the test.
+
+#### c)
+
+The cubic model would have a lower RSS than the linear model since it would necessarily capture the training data more accurately than the simpler linear model. 
+
+#### d)
+
+The cubic model would have a lower RSS on the test data too since the data reflect a true non-linear relationship, and the cubic model would be able to approximate the non-linearity more accurately than the linear model.
