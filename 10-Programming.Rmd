@@ -1,6 +1,42 @@
 # In-Class Programming Activity, Day 10
 
-Your work goes here ...
+## Ilse Dippenaar
+```{r}
+library(ISLR)
+```
+
+```{r}
+logistic <- function(x) exp(x) / (1+exp(x))
+linear_combine <- function(data, coefs) {
+  result <- 0
+  for (nm in names(coefs)) {
+    if (nm == "intercept") {
+      result <- result + coefs[[nm]]
+    } else if (nm %in% names(data)) {
+      result <- result + coefs[[nm]] * data[[nm]]
+    } else {
+      stop("Names in coefs must be in data")
+    }
+  }
+  result
+}
+LL_logistic <- function(data, coefs, outcome) {
+  outcome_statement <- substitute(outcome)
+  outcome <- eval(outcome_statement, envir = data)
+  results <- logistic(linear_combine(data, coefs))
+  likelihood <- ifelse(outcome, results, 1-results)
+  sum(log(likelihood))
+}
+```
+
+```{r}
+starting_params <- c(intercept = 0, income = 0)
+outcome <- with(Default, default == "Yes")
+best_coefs <- optim(starting_params, 
+      function(params) LL_logistic(Default, params, outcome), 
+      control = list(fnscale = -1))
+glm(default == "Yes" ~ income, data=Default, family="binomial")
+```
 
 
 
