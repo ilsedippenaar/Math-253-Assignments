@@ -1,7 +1,63 @@
 # In-Class Programming Activity, Day 12
 
-Your work goes here ...
+## Ilse Dippenaar
 
+
+```{r}
+n_cases <- 10000
+red_mean <- c(1, 0)
+green_mean <- c(0, -1)
+blue_mean <- c(-1, 1)
+covar_red <- cbind(c(3, -1.7), c(-1.7, 1))
+covar_blue <- cbind(c(2, 1.5), c(1.5, 3))
+
+One <- matrix(rnorm(n_cases*2), ncol=2)
+Two <- matrix(rnorm(n_cases*2), ncol=2)
+Three <- matrix(rnorm(n_cases*2), ncol=2)
+
+makeColorDataFrame <- function(data, covar_matrix, mean, colorName) {
+  correlatedData <- data %*% chol(covar_matrix)
+  meanAdjusted <- t(t(correlatedData) + mean)
+  data.frame(x=meanAdjusted[,1], y=meanAdjusted[,2], 
+             class=colorName, stringsAsFactors=F)
+}
+
+Red <- makeColorDataFrame(One, covar_red, red_mean, "red")
+Green <- makeColorDataFrame(Two, covar_red, green_mean, "green")
+Blue <- makeColorDataFrame(Three, covar_blue, blue_mean, "blue")
+
+Same_sigma <- rbind(Red, Green)
+Different_sigma <- rbind(Red, Blue)
+```
+
+```{r}
+with(Same_sigma, plot(x, y, col=class, pch=20, cex=0.5))
+with(Different_sigma, plot(x, y, col=class, pch=20, cex=0.5))
+```
+
+```{r}
+library(MASS)
+mod_LDA_one <- lda(class ~ x + y, data = Same_sigma)
+test_LDA_one <- predict(mod_LDA_one, newdata = Same_sigma)
+mod_LDA_two <- lda(class ~ x + y, data = Different_sigma)
+test_LDA_two <- predict(mod_LDA_two, newdata = Different_sigma)
+```
+
+```{r}
+mod_QDA_one <- qda(class ~ x + y, data = Same_sigma)
+test_QDA_one <- predict(mod_QDA_one, newdata = Same_sigma)
+mod_QDA_two <- qda(class ~ x + y, data = Different_sigma)
+test_QDA_two <- predict(mod_QDA_two, newdata = Different_sigma)
+```
+
+
+```{r}
+table(Same_sigma$class, test_LDA_one$class)
+table(Same_sigma$class, test_QDA_one$class)
+
+table(Different_sigma$class, test_LDA_two$class)
+table(Different_sigma$class, test_QDA_two$class)
+```
 
 
 ## Test statements
