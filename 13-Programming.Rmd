@@ -1,6 +1,38 @@
 # In-Class Programming Activity, Day 13
 
-Your work goes here ...
+## Ilse Dippenaar
+```{r}
+k_fold1 <- function(method=lm, data=mtcars, k=10) {
+  n <- nrow(data)
+  sets <- rep(1:k, each = n/k, length.out = n)
+  mspe <- numeric(k)
+  for (i in 1:k) {
+    indices <- sets == i
+    For_Testing <- data[indices,]
+    For_Training <- data[!indices,]
+    mod <- lm(mpg ~ hp + wt + am, data = For_Training)
+    pred_vals <- predict(mod, newdata = For_Testing)
+    mspe[i] <- mean((For_Testing[["mpg"]] - pred_vals)^2)
+  }
+  mean(mspe)
+}
+k_fold1()
+```
+
+```{r}
+k_fold <- function(formula, method = lm, data = mtcars, predfun = predict, k = 10) {
+  n <- nrow(data)
+  sets <- rep(1:k, each = n/k, length.out = n)
+  mspe <- vapply(1:k, 
+                function(i) mean((
+                  predfun(method(formula, data[sets != i,]), data[sets == i,]) - 
+                    data[[as.character(formula[[2]])]][sets == i])^2), 
+                numeric(1))
+  mean(mspe)
+}
+k_fold(wage ~ age + sex, data = mosaicData::CPS85, k = 10, predfun = predict, 
+    method = lm)
+```
 
 
 
