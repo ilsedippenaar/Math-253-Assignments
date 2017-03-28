@@ -1,2 +1,178 @@
 # Topic 4 Exercises: Classification
 
+## Ilse Dippenaar
+
+## 4.7
+
+### 1
+
+Let $e^{\beta_0+\beta_1X} = Y$ so that
+
+\[
+\begin{align}
+p(X)&=\frac{e^{\beta_0+\beta_1X}}{1+e^{\beta_0+\beta_1X}} \\
+&=\frac{Y}{1+Y}
+\end{align}
+\]
+
+Then 
+\[
+\begin{align*}
+Y &= p(X)(1+Y)\\
+&= p(X)+p(X)\ Y\\
+\end{align*}\\
+Y-p(X)\ Y =p(X)\\
+Y(1-p(X)) = p(X)\\
+Y=\frac{p(X)}{1-p(X)}\\
+e^{\beta_0+\beta_1X}=\frac{p(X)}{1-p(X)}
+\]
+
+### 8
+We should prefer to use the logistic classification. 1-nearest neighbors will perfectly predict the training data, so the training error will be 0%, and since the average of the training and test error is 18%, the test error must be 36%. This is higher than the 30% error rate on the test data for the logistic regression. Since the test error represents the expected error on new, unseen data, the logistic classification method will be more accurate for new observations.
+
+### 9
+
+#### a)
+Let $p$ be the probability and $o$ be the odds.
+\[
+\begin{align}
+p&=\frac{o}{1+o}\\
+&=\frac{0.37}{1.37}\\
+&\approx 0.27
+\end{align}
+\]
+
+#### b)
+\[
+\begin{align}
+o&=\frac{p}{1-p}\\
+&=\frac{0.16}{0.84}\\
+&\approx 0.19
+\end{align}
+\]
+
+### 11
+#### a)
+```{r, message=FALSE}
+require(ISLR)
+require(ggplot2)
+require(gridExtra)
+Auto <- within(Auto, mpg01 <- as.numeric(mpg > median(mpg)))
+```
+
+#### b)
+```{r}
+ylab <- 'MPG Response'
+plot_horsepower <- ggplot(Auto, aes(horsepower, mpg01)) + 
+  geom_point() + labs(x='Horsepower', y=ylab)
+plot_weight <- ggplot(Auto, aes(weight, mpg01)) + 
+  geom_point() + labs(x='Weight', y=ylab)
+plot_acceleration <- ggplot(Auto, aes(acceleration, mpg01)) + 
+  geom_point() + labs(x='Acceleration', y=ylab)
+grid.arrange(plot_horsepower, plot_weight, plot_acceleration, ncol=3)
+```
+
+Horsepower, weight, and acceleration seem to have a relationship to the created MPG response variable. The other variables in the data  frame do not appear to be correlated (such as displacement and year) or are not quantitative (such as name).
+
+#### c)
+```{r}
+set.seed(1)
+n <- nrow(Auto)
+train_set <- 1:n %in% sample(1:n, 0.75*n)
+training_data <- Auto[train_set,]
+test_data <- Auto[!train_set,]
+```
+
+#### d)
+
+```{r}
+library(MASS)
+calc_mspe <- function(mod, response) {
+  if ('glm' %in% class(mod)) {
+    pred <- predict(mod, newdata = test_data, type = 'response') > 0.5
+  } else if (any(c('lda', 'qda') %in% class(mod))) {
+    pred <- predict(mod, newdata = test_data)$class
+  }
+  mean((pred != response)^2)
+}
+mod_formula <- mpg01 ~ horsepower + weight + acceleration
+mod_lda <- lda(mod_formula, data = training_data)
+calc_mspe(mod_lda, test_data[["mpg01"]])
+```
+
+#### e)
+```{r}
+mod_qda <- qda(mod_formula, data = training_data)
+calc_mspe(mod_qda, test_data[["mpg01"]])
+```
+
+#### f)
+```{r}
+mod_log <- glm(mod_formula, 
+               data = training_data, family = 'binomial')
+calc_mspe(mod_log, test_data[["mpg01"]])
+```
+
+#### g)
+```{r}
+library(class)
+training_knn <- training_data[,all.vars(mod_formula)[-1]]
+testing_knn <- test_data[,all.vars(mod_formula)[-1]]
+labels_knn <- training_data[,all.vars(mod_formula)[1]]
+results <- sapply(1:10, function(k) {
+  pred_knn <- knn(training_knn, testing_knn, labels_knn, k=k)
+  out <- mean((pred_knn != test_data[['mpg01']])^2)
+  names(out) <- k
+  out
+})
+plot(results, pch=20)
+results[which.min(results)]
+```
+
+The best value for k for this data set is 6 or 7. 
+
+### 13
+
+```{r}
+par(mfrow = c(2, 3))
+for (name in names(Boston)[-1]) {
+  plot(Boston[[name]], Boston[['crim']], pch=20, cex=0.4, xlab=name, ylab='crim')
+}
+sort(abs(cor(Boston)[1,]), decreasing = T)
+```
+```{r}
+Boston <- within(Boston, crim_res <- crim > median(crim))
+set.seed(1)
+n <- nrow(Boston)
+train_set <- 1:n %in% sample(1:n, 0.7*n)
+training_data <- Boston[train_set,]
+test_data <- Boston[!train_set,]
+```
+
+```{r}
+model_errors <- function(mod_formula) {
+  mod_log <- glm(mod_formula, data = training_data, family = 'binomial')
+  a <- calc_mspe(mod_log, test_data[['crim_res']])
+  
+  mod_lda <- lda(mod_formula, training_data)
+  b <- calc_mspe(mod_lda, test_data[['crim_res']])
+  
+  vars <- all.vars(mod_formula)
+  training_knn <- training_data[,vars[-1], drop = FALSE]
+  testing_knn <- test_data[,vars[-1], drop = FALSE]
+  labels_knn <- training_data[,vars[1]]
+  results <- sapply(1:10, function(k) {
+    pred_knn <- knn(training_knn, testing_knn, labels_knn, k=k)
+    out <- mean((pred_knn != test_data[['crim_res']]))
+    names(out) <- k
+    out
+  })
+  list(logistic = a, lda = b, knn = results[which.min(results)])
+}
+model_errors(crim_res ~ nox)
+model_errors(crim_res ~ rad + tax + lstat)
+model_errors(crim_res ~ rad + tax + lstat + nox)
+model_errors(crim_res ~ rad + tax + nox)
+```
+
+The model which performs the best on this data only considers nitrogen oxides and uses the KNN model with $k=1$. Additionally, $k=1$ gives consistently the least amount of error for the KNN model across various models, suggesting that the relationship between per capita crime rate and the other variables in the data is highly non-linear. 

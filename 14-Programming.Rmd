@@ -1,6 +1,42 @@
 # In-Class Programming Activity, Day 14
 
-Your work goes here ...
+## Ilse Dippenaar
+
+```{r}
+require(glmnet)
+GenCont <- read.csv("http://tiny.cc/dcf/GenCont.csv")
+```
+
+```{r}
+compare_ols_ridge <- function(responses, predictors, lambda=1) {
+  n <- nrow(responses)
+  train_indices <- sample(1:n, 0.5*n)
+  train_predictors <- predictors[train_indices,]
+  test_predictors <- predictors[-train_indices,]
+  train_responses <- responses[train_indices,]
+  test_responses <- responses[-train_indices,]
+  
+  mod <- lm(as.matrix(train_responses) ~ as.matrix(train_predictors))
+  glm_mod <- glmnet(as.matrix(train_predictors), as.matrix(train_responses), 
+                    alpha = 0, lambda = lambda)
+  
+  ols_in <- mean((predict(mod, newdata = train_predictors)-train_responses)^2)
+  ols_out <- mean((predict(mod, newdata = test_predictors)-test_responses)^2)
+  
+  glm_in <- mean((predict(glm_mod, 
+                          newx = as.matrix(train_predictors))-train_responses)^2)
+  glm_out <- mean((predict(glm_mod, 
+                     newx = as.matrix(test_predictors))-test_responses)^2)
+  
+  
+  list(ols_in = ols_in, ols_out=ols_out, 
+    ridge_in = glm_in, ridge_out=glm_out, 
+    lambda=lambda)
+}
+
+Shrink_results <- compare_ols_ridge(responses, predictors)
+```
+
 
 
 
