@@ -34,7 +34,7 @@ compare_ols_ridge <- function(responses, predictors, lambda=1) {
     lambda=lambda)
 }
 
-Shrink_results <- compare_ols_ridge(responses, predictors)
+Shrink_results <- compare_ols_ridge(GenCont[1], GenCont[-1])
 ```
 
 

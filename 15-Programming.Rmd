@@ -1,7 +1,59 @@
 # In-Class Programming Activity, Day 15
 
-Your work goes here ...
+## Ilse Dippenaar
 
+```{r}
+load("mona.rda")
+```
+
+```{r}
+X <- t(mona) - mean(mona[])
+X_rand <- matrix(rnorm(dim(X)[1] * dim(X)[2]), dim(X)[1], dim(X)[2])
+X_corr <- X_rand %*% chol(cov(X))
+```
+
+```{r}
+beta <- c(sample(c(2, 5, -3, -4), 16, replace = T), rep(0, 175))[sample(1:191)]
+```
+
+```{r}
+Y_pure <- X %*% beta
+Y_real <- Y_pure + rnorm(length(Y_pure), mean=0, sd=sqrt(0.1)*sd(Y_pure))
+```
+
+```{r}
+mod_pure <- lm(Y_pure ~ X)
+beta_hat_pure <- mod_pure$coefficients[-1]
+
+mod_real <- lm(Y_real ~ X)
+beta_hat_real <- mod_real$coefficients[-1]
+```
+
+```{r}
+require(glmnet)
+lasso_mod <- cv.glmnet(X, Y_real, alpha=1)
+beta_lasso <- predict(lasso_mod, type = "coefficients", s = lasso_mod$lambda.min)
+```
+
+```{r}
+sing_vals <- svd(X)$d
+sing_vals_rand <- svd(X_rand)$d
+sing_vals_corr <- svd(X_corr)$d
+
+plot(cumsum(sing_vals^2)/sum(sing_vals^2), cex=0.3, pch=20, ylim=c(0,1))
+points(cumsum(sing_vals_rand^2)/sum(sing_vals_rand^2), cex=0.3, pch=20, col='red')
+points(cumsum(sing_vals_corr^2)/sum(sing_vals_corr^2), cex=0.3, pch=20, col='seagreen4')
+
+n99 <- min(which(cumsum(sing_vals^2)/sum(sing_vals^2) > 0.99))
+n99_rand <- min(which(cumsum(sing_vals_rand^2)/sum(sing_vals_rand^2) > 0.99))
+n99_corr <- min(which(cumsum(sing_vals_corr^2)/sum(sing_vals_corr^2) > 0.99))
+```
+
+```{r}
+require(pls)
+pcr.fit <- pcr(Y_real ~ X, scale = TRUE, validation="CV")
+R2(pcr.fit)
+```
 
 
 ## Test statements
