@@ -1,2 +1,96 @@
 # Topic 6 Exercises: Selecting Model Terms
 
+## Ilse Dippenaar
+
+### 1
+
+#### a
+The best subset selection will have the smallest training RSS.
+
+#### b
+Since best subset will select the best model with $k$ predictors (as determined by the training data), best subset will most likely pick the most accurate model. However, there is no guarantee that the model that performs best on the training data also performs best on the test data.
+
+#### c
+*i* True 
+*ii* False
+*iii* False
+*iv* False
+*v* False
+
+### 2
+#### a
+iii
+#### b
+iii
+#### c
+ii
+
+### 9
+```{r}
+library(ISLR)
+library(glmnet)
+library(pls)
+
+d <- College
+d$Private <- ifelse(d$Private == "Yes", 1, 0)
+```
+
+#### a
+```{r}
+form <- Apps ~ .
+n <- nrow(d)
+train_idxs <- sample(1:n, 0.9*n)
+train <- College[train_idxs,]
+test <- College[-train_idxs,]
+x <- model.matrix(form, College)[,-1]
+y <- College$Apps
+x_train <- x[train_idxs,]
+y_train <- y[train_idxs]
+x_test <- x[-train_idxs,]
+y_test <- y[-train_idxs]
+mse <- function(a, b) mean((a-b)^2)
+```
+
+#### b
+```{r}
+mod1 <- lm(form, train)
+(error1 <- mse(predict(mod1, test), test$Apps))
+```
+
+#### c
+```{r}
+grid <- 10^seq(-4, 2, length.out = 100)
+mod2 <- glmnet(x_train, y_train, alpha = 0)
+mod2_cv <- cv.glmnet(x_train, y_train, alpha=0, lambda = grid)
+(error2 <- mse(predict(mod2, x_test, s = mod2_cv$lambda.min), 
+               y_test))
+```
+
+#### d
+```{r}
+mod3 <- glmnet(x_train, y_train, alpha = 1)
+mod3_cv <- cv.glmnet(x_train, y_train, alpha=1, lambda = grid)
+(error3 <- mse(predict(mod3, x_test, s = mod3_cv$lambda.min),
+                 y_test))
+```
+
+#### e
+```{r}
+mod4 <- pcr(form, data = train, scale = T, validation = "CV")
+validationplot(mod4, val.type="MSEP")
+mse(predict(mod4, x_test, ncomp = 5), 
+    y_test)
+```
+
+#### f
+```{r}
+mod5 <- plsr(form, data = train, scale = T, validation = "CV")
+validationplot(mod5, val.type="MSEP")
+mse(predict(mod5, x_test, ncomp = 5), 
+    y_test)
+```
+
+
+#### g
+There is not much difference in the errors obtained between the methods. The MSE hovers around ~230,000 for all of them, so it seems like there are other predictors influencing the number of apps colleges receive than are contained in the data set. 
+

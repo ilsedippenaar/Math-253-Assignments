@@ -1,7 +1,74 @@
 # In-Class Programming Activity, Day 16
 
-Your work goes here ...
+## Ilse Dippenaar
 
+```{r}
+require(ISLR)
+```
+
+```{r}
+my_knots <- function(x, k) quantile(x, (1:k)/(k+1), names=F)
+spline_model_matrix <- function(x, knot_locations) {
+  m <- outer(x, 0:3, `^`)
+  for (knot in knot_locations) {
+    m <- cbind(m, ifelse(x < knot, 0, (x-knot)^3))
+  }
+  m
+}
+fit_spline <- function(formula, k=2, data=parent.frame()) {
+  y <- eval(formula[[2]], envir=data)
+  x <- eval(formula[[3]], envir=data)
+  knot_locations <- my_knots(x, k)
+  MM <- spline_model_matrix(x, knot_locations)
+  mod <- lm(y ~ MM - 1)
+  rse <- sqrt(sum(mod$residuals^2) / (nrow(MM) - ncol(MM)))
+  res <- list(coef = coef(mod), knots = knot_locations, cov = vcov(mod), rse=rse)
+  class(res) <- "my_spline"
+  
+  return(res)
+}
+predict.my_spline <- function(mod, newx, 
+                              level = 0.95, 
+                              intervals=c("none", "confidence", "prediction")) {
+  intervals <- match.arg(intervals)
+  MM <- spline_model_matrix(newx, mod$knots)
+  vals <- MM %*% mod$coef
+  se <- sqrt(rowSums(MM %*% mod$cov * MM))
+  if (intervals == "none") return(vals)
+  else if (intervals == "confidence") {
+    return(data.frame(vals=vals, lower=vals-2*se, upper=vals+2*se))
+  } else if (intervals == "prediction") {
+    pred_se <- sqrt(se^2 + mod$rse^2)
+    return(data.frame(vals=vals, lower=vals-2*pred_se, upper=vals+2*pred_se))
+  } else {
+    stop("Invalid intervals arugment")
+  }
+}
+```
+
+```{r}
+form <- wage ~ age
+mod_spline <- fit_spline(form, k=10, data=Wage)
+xx <- seq(20, 80, length.out = 1000)
+out <- predict(mod_spline, xx, intervals = "pred")
+plot(form, data = Wage, pch=20, col=rgb(0,0,0,0.1), cex=0.8, ylim=c(0, 400))
+lines(xx, out[["vals"]], col="red", lwd=2)
+lines(xx, out[["lower"]], col="red", lwd=1, lty=2)
+lines(xx, out[["upper"]], col="red", lwd=1, lty=2)
+```
+```{r}
+train_idxs <- sample(1:nrow(Wage), 0.5*nrow(Wage))
+train <- Wage[train_idxs,]
+test <- Wage[-train_idxs,]
+kk <- 1:20
+res <- sapply(kk, function(k) {
+  mod_spline <- fit_spline(form, k=k, data=train)
+  vals <- predict(mod_spline, eval(form[[3]], envir=test), intervals = "none")
+  return(mean((eval(form[[2]], envir=test) - vals)^2))
+})
+names(res) <- kk
+res[which.min(res)]
+```
 
 
 ## Test statements
