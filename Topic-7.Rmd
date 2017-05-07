@@ -1,2 +1,56 @@
 # Topic 7 Exercises: Nonlinear regression
 
+## Ilse Dippenaar
+
+### 3
+```{r}
+xx <- seq(-2, 2, length.out = 1000)
+plot(xx, 1 + xx - 2*(xx-1)^2*(xx>1), type="l", xlab = "x", ylab = "f(x)", ylim=c(-1,2.5))
+```
+
+### 4
+```{r}
+plot(xx, 1 + (xx >= 0 & xx <= 2) - (xx-1)*(xx >= 1 & xx <= 2), type="l", xlab="x", ylab="f(x)", ylim=c(0, 2))
+```
+
+### 5
+
+#### a
+Since $\hat{g_1}$ has 4 degrees of freedom, it will fit the training set better than $\hat{g_2}$, which only has 3 degrees of freedom.
+
+#### b
+Which function will have a lower test RSS depends on the data set. If the data is more non-linear, a more flexible model (i.e. $\hat{g_1}$) will produce lower RSS on the test set, but if the data represents a fairly linear relationship, the added flexibility will result in greater variance gain than bias loss.
+
+#### c
+Both $\hat{g_1}$ and $\hat{g_2}$ will have equal training and test RSS since with $\lambda=0$, the models produce the least squares fit.
+
+### 11
+```{r}
+n <- 100
+x1 <- seq(0, 1, length.out = n) + rnorm(n, 0, 4)
+x2 <- x1 + rnorm(n)
+y <- 2*x1 + 3*x2
+
+beta1 <- 4
+beta1list <- c()
+beta2list <- c()
+for (i in 1:1000) {
+  a <- y - beta1*x1
+  beta2 <- lm(a ~ x2)$coef[2]
+  
+  a <- y - beta2*x2
+  beta1 <- lm(a ~ x1)$coef[2]
+  
+  beta1list <- c(beta1list, beta1)
+  beta2list <- c(beta2list, beta2)
+}
+
+coefs <- lm(y ~ x1 + x2)$coef
+plot(beta1list, pch=20, cex=0.4, col="red", ylim=c(0,4), xlab="Iteration", ylab="Coefficient")
+points(beta2list, pch=20, cex=0.4, col="purple")
+abline(coefs[2], 0, col="red")
+abline(coefs[3], 0, col="purple")
+```
+
+About 100 iterations are required for convergence. 
+
